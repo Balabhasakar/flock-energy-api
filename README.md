@@ -6,8 +6,6 @@ portal's internal JSON endpoints, normalizes the data, and exposes it
 through a modern, documented REST interface with auto-generated
 OpenAPI/Swagger docs.
 
-**🔗 Live deployment:** https://flock-energy-api-9czv.onrender.com
-
 **📖 Live Swagger docs:** https://flock-energy-api-9czv.onrender.com/docs
 
 > Note: the live deployment is on Render's free tier, which spins down
