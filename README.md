@@ -1,18 +1,24 @@
 # Flock Energy — Urja Meter Ops API
 
 A clean, documented REST API wrapper around the legacy "Urja Meter Ops"
-portal. Handles authentication/session persistence with the legacy site,
-normalizes its HTML responses into structured JSON, and exposes a modern
-documented REST interface with auto-generated OpenAPI/Swagger docs.
+portal. It logs into the legacy site, keeps the session alive, calls the
+portal's internal JSON endpoints, normalizes the data, and exposes it
+through a modern, documented REST interface with auto-generated
+OpenAPI/Swagger docs.
 
-> **Note:** `src/client.js` currently encodes *assumptions* about the legacy
-> portal's login flow and HTML structure (clearly marked `ASSUMPTION:` in
-> comments), since this build was done without live browser access to the
-> portal. See `PROTOCOL.md` for the verification checklist — walk through
-> Step 1 of the assignment against the real site and update `client.js`
-> accordingly before treating this as production-ready.
+**🔗 Live deployment:** https://flock-energy-api-9czv.onrender.com
+**📖 Live Swagger docs:** https://flock-energy-api-9czv.onrender.com/docs
 
-## Setup
+> Note: the live deployment is on Render's free tier, which spins down
+> after ~15 minutes of inactivity. The first request after idle time can
+> take 30-50 seconds to wake it back up — that's expected, not a bug.
+
+All endpoints have been verified end-to-end against the real legacy
+portal, both locally and on the live deployment above. See `PROTOCOL.md`
+for the full reverse-engineering writeup of how the legacy portal
+actually works.
+
+## Setup (running locally)
 
 ```bash
 git clone <this-repo>
@@ -48,6 +54,10 @@ Server starts on `http://localhost:4000` by default.
 | GET | `/api/v1/hierarchy` | Get the org/network tree (optional extension) |
 
 ## Sample Requests
+
+Replace `http://localhost:4000` with the live URL
+(`https://flock-energy-api-9czv.onrender.com`) to try these against the
+deployed version instead of a local instance.
 
 ```bash
 curl http://localhost:4000/api/v1/meters?page=1
@@ -124,7 +134,7 @@ flock-energy-api/
 ├── src/
 │   ├── server.js       # entrypoint — starts the HTTP server
 │   ├── app.js           # Express app assembly, Swagger wiring
-│   ├── client.js         # legacy portal adapter (auth, scraping, normalization)
+│   ├── client.js         # legacy portal adapter (auth, JSON API calls, normalization)
 │   ├── config.js         # environment-driven configuration
 │   └── routes/
 │       └── meters.js     # /api/v1/* route handlers
@@ -179,19 +189,25 @@ to change.
   session-expiry signal. This is a deliberate trade-off vs. default axios
   behavior.
 
-## Running Tests / Verifying Against the Real Portal
+## Verification Status
 
-All core endpoints (`login`, `/portal/meters/search`, `/portal/meters/{id}/geo`,
-`/portal/meters/{id}/energy`, `/portal/dts`) have been confirmed via
-captured live DevTools traces against the real portal — see `PROTOCOL.md`
-for full details and exact response shapes. This build has NOT yet been
-executed end-to-end from this codebase against the live portal directly
-(no outbound network access from the build environment), so before
-treating it as production-ready:
+All four endpoints have been tested end-to-end against the real legacy
+portal — both running locally (`npm start` + `curl`/Swagger) and on the
+live Render deployment linked above:
 
-1. Run `npm start` with real credentials in `.env`.
-2. Hit each endpoint via `curl` or the Swagger UI at `/docs` and confirm
-   the responses match what's documented in `PROTOCOL.md`.
-3. Pay particular attention to error paths not yet exercised: an invalid
-   meter ID, an expired session mid-request, and pagination past page 21
-   on `/meters`.
+| Endpoint | Verified |
+|---|---|
+| `GET /api/v1/meters` (list + search + pagination) | ✅ |
+| `GET /api/v1/meters/:id` (detail + coordinates) | ✅ |
+| `GET /api/v1/meters/:id/consumption` (energy history) | ✅ |
+| `GET /api/v1/hierarchy` (feeder → transformer tree) | ✅ |
+
+See `PROTOCOL.md` for the exact request/response traces this was built
+against.
+
+**Not yet exercised** (optional, noted as future work — see
+`PROTOCOL.md` and `REFLECTION.md`):
+- Session-expiry / re-authentication behavior after the 1-hour cookie
+  lapses.
+- Date-range query params (`from`/`to`) on the consumption endpoint —
+  not confirmed whether the legacy portal suppor
