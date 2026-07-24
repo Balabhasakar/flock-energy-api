@@ -7,6 +7,7 @@ through a modern, documented REST interface with auto-generated
 OpenAPI/Swagger docs.
 
 **🔗 Live deployment:** https://flock-energy-api-9czv.onrender.com
+
 **📖 Live Swagger docs:** https://flock-energy-api-9czv.onrender.com/docs
 
 > Note: the live deployment is on Render's free tier, which spins down
@@ -188,6 +189,7 @@ to change.
   specifically so the adapter can detect "redirected back to /login" as a
   session-expiry signal. This is a deliberate trade-off vs. default axios
   behavior.
+
 
 ## Verification Status
 
